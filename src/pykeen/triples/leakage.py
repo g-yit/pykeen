@@ -16,10 +16,10 @@ import numpy
 import scipy.sparse
 import torch
 
-from pykeen.datasets.base import EagerDataset
-from pykeen.triples.triples_factory import CoreTriplesFactory, TriplesFactory, cat_triples
-from pykeen.typing import MappedTriples
-from pykeen.utils import compact_mapping, get_connected_components
+from ..datasets.base import EagerDataset
+from ..triples.triples_factory import CoreTriplesFactory, TriplesFactory, cat_triples
+from ..typing import MappedTriples
+from ..utils import compact_mapping, get_connected_components
 
 __all__ = [
     "Sealant",

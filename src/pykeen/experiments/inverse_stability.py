@@ -13,17 +13,19 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-import pykeen.evaluation.evaluator
-from pykeen.constants import PYKEEN_EXPERIMENTS
-from pykeen.datasets import Dataset, get_dataset
-from pykeen.models import Model, model_resolver
-from pykeen.pipeline import pipeline
-from pykeen.typing import InductiveMode
+import src.pykeen.evaluation.evaluator
+
+from src.pykeen import evaluation
+from ..constants import PYKEEN_EXPERIMENTS
+from ..datasets import Dataset, get_dataset
+from ..models import Model, model_resolver
+from ..pipeline import pipeline
+from ..typing import InductiveMode
 
 INVERSE_STABILITY = PYKEEN_EXPERIMENTS / "inverse_stability"
 INVERSE_STABILITY.mkdir(parents=True, exist_ok=True)
 
-pykeen.evaluation.evaluator.logger.setLevel(logging.CRITICAL)
+evaluation.evaluator.logger.setLevel(logging.CRITICAL)
 
 
 @click.command()

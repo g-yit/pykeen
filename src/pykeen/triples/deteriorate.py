@@ -9,9 +9,9 @@ import click
 import more_click
 import torch
 
-from pykeen.triples import TriplesFactory
-from pykeen.typing import TorchRandomHint
-from pykeen.utils import ensure_torch_random_state
+from ..triples import TriplesFactory
+from ..typing import TorchRandomHint
+from ..utils import ensure_torch_random_state
 
 __all__ = [
     "deteriorate",

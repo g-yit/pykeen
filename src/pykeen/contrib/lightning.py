@@ -34,16 +34,16 @@ import torch
 import torch.utils.data
 from class_resolver import ClassResolver, HintOrType, OptionalKwargs
 
-from pykeen.datasets import dataset_resolver, get_dataset
-from pykeen.datasets.base import Dataset
-from pykeen.losses import Loss, loss_resolver
-from pykeen.models import Model, model_resolver
-from pykeen.models.cli import options
-from pykeen.optimizers import optimizer_resolver
-from pykeen.sampling import NegativeSampler
-from pykeen.training import LCWATrainingLoop, SLCWATrainingLoop
-from pykeen.triples.triples_factory import CoreTriplesFactory
-from pykeen.typing import InductiveMode, OneOrSequence
+from ..datasets import dataset_resolver, get_dataset
+from ..datasets.base import Dataset
+from ..losses import Loss, loss_resolver
+from ..models import Model, model_resolver
+from ..models.cli import options
+from ..optimizers import optimizer_resolver
+from ..sampling import NegativeSampler
+from ..training import LCWATrainingLoop, SLCWATrainingLoop
+from ..triples.triples_factory import CoreTriplesFactory
+from ..typing import InductiveMode, OneOrSequence
 
 __all__ = [
     "LitModule",

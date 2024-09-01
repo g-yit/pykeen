@@ -15,7 +15,7 @@ import tabulate
 from more_click import verbose_option
 from tqdm.auto import tqdm
 
-from pykeen.utils import CONFIGURATION_FILE_FORMATS, load_configuration, normalize_path
+from ..utils import CONFIGURATION_FILE_FORMATS, load_configuration, normalize_path
 
 __all__ = [
     "experiments",
