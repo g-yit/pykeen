@@ -384,13 +384,13 @@ class PipelineResult(Result):
         return results
 
     def save_to_directory(
-        self,
-        directory: str | pathlib.Path,
-        *,
-        save_metadata: bool = True,
-        save_replicates: bool = True,
-        save_training: bool = True,
-        **_kwargs,
+            self,
+            directory: str | pathlib.Path,
+            *,
+            save_metadata: bool = True,
+            save_replicates: bool = True,
+            save_training: bool = True,
+            **_kwargs,
     ) -> None:
         """
         Save all artifacts in the given directory.
@@ -536,8 +536,8 @@ class PipelineResult(Result):
 
 
 def replicate_pipeline_from_path(
-    path: str | pathlib.Path,
-    **kwargs,
+        path: str | pathlib.Path,
+        **kwargs,
 ) -> None:
     """Run the same pipeline several times from a configuration file by path.
 
@@ -548,14 +548,14 @@ def replicate_pipeline_from_path(
 
 
 def replicate_pipeline_from_config(
-    config: Mapping[str, Any],
-    directory: str | pathlib.Path,
-    replicates: int,
-    move_to_cpu: bool = False,
-    save_replicates: bool = True,
-    save_training: bool = False,
-    keep_seed: bool = False,
-    **kwargs,
+        config: Mapping[str, Any],
+        directory: str | pathlib.Path,
+        replicates: int,
+        move_to_cpu: bool = False,
+        save_replicates: bool = True,
+        save_training: bool = False,
+        keep_seed: bool = False,
+        **kwargs,
 ) -> None:
     """Run the same pipeline several times from a configuration dictionary.
 
@@ -671,15 +671,15 @@ def compare_results(df: pd.DataFrame, significance_level: float = 0.01) -> pd.Da
 
 
 def save_pipeline_results_to_directory(
-    *,
-    config: Mapping[str, Any],
-    directory: str | pathlib.Path,
-    pipeline_results: Iterable[PipelineResult],
-    move_to_cpu: bool = False,
-    save_metadata: bool = False,
-    save_replicates: bool = True,
-    save_training: bool = False,
-    width: int = 5,
+        *,
+        config: Mapping[str, Any],
+        directory: str | pathlib.Path,
+        pipeline_results: Iterable[PipelineResult],
+        move_to_cpu: bool = False,
+        save_metadata: bool = False,
+        save_replicates: bool = True,
+        save_training: bool = False,
+        width: int = 5,
 ) -> None:
     """Save the result set to the directory.
 
@@ -732,8 +732,8 @@ def save_pipeline_results_to_directory(
 
 
 def pipeline_from_path(
-    path: str | pathlib.Path,
-    **kwargs,
+        path: str | pathlib.Path,
+        **kwargs,
 ) -> PipelineResult:
     """Run the pipeline with configuration in a JSON/YAML file at the given path.
 
@@ -750,9 +750,9 @@ def pipeline_from_path(
 
 
 def pipeline_from_config(
-    config: Mapping[str, Any],
-    discard_seed: bool = False,
-    **kwargs,
+        config: Mapping[str, Any],
+        discard_seed: bool = False,
+        **kwargs,
 ) -> PipelineResult:
     """Run the pipeline with a configuration dictionary.
 
@@ -786,22 +786,22 @@ def _get_model_defaults(model: Model) -> Mapping[str, Any]:
         for name, param in model_resolver.signature(model).parameters.items()
         # skip special parameters
         if name != "self"
-        and param.kind not in {param.VAR_POSITIONAL, param.VAR_KEYWORD}
-        and param.default != param.empty
+           and param.kind not in {param.VAR_POSITIONAL, param.VAR_KEYWORD}
+           and param.default != param.empty
     }
 
 
 def _build_model_helper(
-    *,
-    model,
-    model_kwargs,
-    loss,
-    loss_kwargs,
-    _device,
-    _random_seed,
-    regularizer,
-    regularizer_kwargs,
-    training_triples_factory,
+        *,
+        model,
+        model_kwargs,
+        loss,
+        loss_kwargs,
+        _device,
+        _random_seed,
+        regularizer,
+        regularizer_kwargs,
+        training_triples_factory,
 ) -> tuple[Model, Mapping[str, Any]]:
     """Collate model-specific parameters and initialize the model from it."""
     if model_kwargs is None:
@@ -844,8 +844,23 @@ def _build_model_helper(
 
 
 def _handle_random_seed(
-    training_kwargs: Mapping[str, Any], random_seed: int | None = None, clear_optimizer: bool = True
+        training_kwargs: Mapping[str, Any], random_seed: int | None = None, clear_optimizer: bool = True
 ) -> tuple[int, bool]:
+    '''
+        函数输入参数:
+
+    training_kwargs: 包含训练相关的参数的字典。
+    random_seed: （可选）一个整数，用于指定随机种子。如果未指定，代码将随机生成一个种子。
+    clear_optimizer: 一个布尔值，指示在恢复训练时是否清除优化器。默认值为 True，表示清除优化器。
+    函数逻辑:
+
+    首先检查 training_kwargs 中是否有 checkpoint_name，以判断是否要从检查点恢复训练。
+    如果有 checkpoint_name，则会检查相应的 checkpoint_path 文件是否存在：
+    如果存在，则加载检查点文件，提取并使用其中的随机种子，同时设置 clear_optimizer 为 False，以便在恢复训练时继续使用优化器的状态。
+    如果不存在，则生成一个新的随机种子（如果未提供 random_seed）。
+    如果没有指定 checkpoint_name，则直接生成或使用提供的 random_seed。
+    最后，返回确定的随机种子 _random_seed 和是否清除优化器的标志 clear_optimizer。
+    '''
     # To allow resuming training from a checkpoint when using a pipeline, the pipeline needs to obtain the
     # used random_seed to ensure reproducible results
     checkpoint_name = training_kwargs.get("checkpoint_name")
@@ -876,15 +891,15 @@ def _handle_random_seed(
 
 
 def _handle_dataset(
-    *,
-    _result_tracker: ResultTracker,
-    dataset: None | str | Dataset | type[Dataset] = None,
-    dataset_kwargs: Mapping[str, Any] | None = None,
-    training: Hint[CoreTriplesFactory] = None,
-    testing: Hint[CoreTriplesFactory] = None,
-    validation: Hint[CoreTriplesFactory] = None,
-    evaluation_entity_whitelist: Collection[str] | None = None,
-    evaluation_relation_whitelist: Collection[str] | None = None,
+        *,
+        _result_tracker: ResultTracker,
+        dataset: None | str | Dataset | type[Dataset] = None,
+        dataset_kwargs: Mapping[str, Any] | None = None,
+        training: Hint[CoreTriplesFactory] = None,
+        testing: Hint[CoreTriplesFactory] = None,
+        validation: Hint[CoreTriplesFactory] = None,
+        evaluation_entity_whitelist: Collection[str] | None = None,
+        evaluation_relation_whitelist: Collection[str] | None = None,
 ) -> tuple[CoreTriplesFactory, CoreTriplesFactory, CoreTriplesFactory | None]:
     # TODO: allow empty validation / testing
     dataset_instance: Dataset = get_dataset(
@@ -927,23 +942,23 @@ def _handle_dataset(
 
 
 def _handle_model(
-    *,
-    device: DeviceHint,
-    _result_tracker: ResultTracker,
-    _random_seed: int,
-    training: CoreTriplesFactory,
-    # 2. Model
-    model: None | str | Model | type[Model] = None,
-    model_kwargs: Mapping[str, Any] | None = None,
-    interaction: None | str | Interaction | type[Interaction] = None,
-    interaction_kwargs: Mapping[str, Any] | None = None,
-    dimensions: None | int | Mapping[str, int] = None,
-    # 3. Loss
-    loss: HintType[Loss] = None,
-    loss_kwargs: Mapping[str, Any] | None = None,
-    # 4. Regularizer
-    regularizer: HintType[Regularizer] = None,
-    regularizer_kwargs: Mapping[str, Any] | None = None,
+        *,
+        device: DeviceHint,
+        _result_tracker: ResultTracker,
+        _random_seed: int,
+        training: CoreTriplesFactory,
+        # 2. Model
+        model: None | str | Model | type[Model] = None,
+        model_kwargs: Mapping[str, Any] | None = None,
+        interaction: None | str | Interaction | type[Interaction] = None,
+        interaction_kwargs: Mapping[str, Any] | None = None,
+        dimensions: None | int | Mapping[str, int] = None,
+        # 3. Loss
+        loss: HintType[Loss] = None,
+        loss_kwargs: Mapping[str, Any] | None = None,
+        # 4. Regularizer
+        regularizer: HintType[Regularizer] = None,
+        regularizer_kwargs: Mapping[str, Any] | None = None,
 ) -> Model:
     _device: torch.device = resolve_device(device)
     logger.info(f"Using device: {device}")
@@ -1006,21 +1021,21 @@ def _handle_model(
 
 
 def _handle_training_loop(
-    *,
-    _result_tracker: ResultTracker,
-    model_instance: Model,
-    training: CoreTriplesFactory,
-    # 5. Optimizer
-    optimizer: HintType[Optimizer] = None,
-    optimizer_kwargs: Mapping[str, Any] | None = None,
-    # 5.1 Learning Rate Scheduler
-    lr_scheduler: HintType[LRScheduler] = None,
-    lr_scheduler_kwargs: Mapping[str, Any] | None = None,
-    # 6. Training Loop
-    training_loop: HintType[TrainingLoop] = None,
-    training_loop_kwargs: Mapping[str, Any] | None = None,
-    negative_sampler: HintType[NegativeSampler] = None,
-    negative_sampler_kwargs: Mapping[str, Any] | None = None,
+        *,
+        _result_tracker: ResultTracker,
+        model_instance: Model,
+        training: CoreTriplesFactory,
+        # 5. Optimizer
+        optimizer: HintType[Optimizer] = None,
+        optimizer_kwargs: Mapping[str, Any] | None = None,
+        # 5.1 Learning Rate Scheduler
+        lr_scheduler: HintType[LRScheduler] = None,
+        lr_scheduler_kwargs: Mapping[str, Any] | None = None,
+        # 6. Training Loop
+        training_loop: HintType[TrainingLoop] = None,
+        training_loop_kwargs: Mapping[str, Any] | None = None,
+        negative_sampler: HintType[NegativeSampler] = None,
+        negative_sampler_kwargs: Mapping[str, Any] | None = None,
 ) -> TrainingLoop:
     optimizer_kwargs = dict(optimizer_kwargs or {})
     optimizer_instance = optimizer_resolver.make(
@@ -1097,11 +1112,11 @@ def _handle_training_loop(
 
 
 def _handle_evaluator(
-    _result_tracker: ResultTracker,
-    # 8. Evaluation
-    evaluator: HintType[Evaluator] = None,
-    evaluator_kwargs: Mapping[str, Any] | None = None,
-    evaluation_kwargs: Mapping[str, Any] | None = None,
+        _result_tracker: ResultTracker,
+        # 8. Evaluation
+        evaluator: HintType[Evaluator] = None,
+        evaluator_kwargs: Mapping[str, Any] | None = None,
+        evaluation_kwargs: Mapping[str, Any] | None = None,
 ) -> tuple[Evaluator, dict[str, Any]]:
     if evaluator_kwargs is None:
         evaluator_kwargs = {}
@@ -1121,22 +1136,22 @@ def _handle_evaluator(
 
 
 def _handle_training(
-    *,
-    _result_tracker: MultiResultTracker,
-    training: CoreTriplesFactory,
-    validation: CoreTriplesFactory | None,
-    model_instance: Model,
-    evaluator_instance: Evaluator,
-    training_loop_instance: TrainingLoop,
-    clear_optimizer: bool,
-    evaluation_kwargs: Mapping[str, Any],
-    # 7. Training (ronaldo style)
-    epochs: int | None = None,
-    training_kwargs: dict[str, Any],
-    stopper: HintType[Stopper] = None,
-    stopper_kwargs: Mapping[str, Any] | None = None,
-    # Misc
-    use_tqdm: bool | None = None,
+        *,
+        _result_tracker: MultiResultTracker,
+        training: CoreTriplesFactory,
+        validation: CoreTriplesFactory | None,
+        model_instance: Model,
+        evaluator_instance: Evaluator,
+        training_loop_instance: TrainingLoop,
+        clear_optimizer: bool,
+        evaluation_kwargs: Mapping[str, Any],
+        # 7. Training (ronaldo style)
+        epochs: int | None = None,
+        training_kwargs: dict[str, Any],
+        stopper: HintType[Stopper] = None,
+        stopper_kwargs: Mapping[str, Any] | None = None,
+        # Misc
+        use_tqdm: bool | None = None,
 ) -> tuple[Stopper, Mapping[str, Any], list[float], float]:
     # Stopping
     if "stopper" in training_kwargs and stopper is not None:
@@ -1192,21 +1207,21 @@ def _handle_training(
 
 
 def _handle_evaluation(
-    *,
-    _result_tracker: ResultTracker,
-    model_instance: Model,
-    evaluator_instance: Evaluator,
-    stopper_instance: Stopper,
-    training: CoreTriplesFactory,
-    testing: CoreTriplesFactory,
-    validation: CoreTriplesFactory | None,
-    training_kwargs: dict[str, Any],
-    evaluation_kwargs: dict[str, Any],
-    # Misc
-    use_testing_data: bool = True,
-    evaluation_fallback: bool = False,
-    filter_validation_when_testing: bool = True,
-    use_tqdm: bool | None = None,
+        *,
+        _result_tracker: ResultTracker,
+        model_instance: Model,
+        evaluator_instance: Evaluator,
+        stopper_instance: Stopper,
+        training: CoreTriplesFactory,
+        testing: CoreTriplesFactory,
+        validation: CoreTriplesFactory | None,
+        training_kwargs: dict[str, Any],
+        evaluation_kwargs: dict[str, Any],
+        # Misc
+        use_testing_data: bool = True,
+        evaluation_fallback: bool = False,
+        filter_validation_when_testing: bool = True,
+        use_tqdm: bool | None = None,
 ) -> tuple[MetricResults, float]:
     if use_testing_data:
         evaluation_factory = testing
@@ -1297,59 +1312,75 @@ def _handle_evaluation(
 
 
 def pipeline(  # noqa: C901
-    *,
-    # 1. Dataset
-    dataset: None | str | Dataset | type[Dataset] = None,
-    dataset_kwargs: Mapping[str, Any] | None = None,
-    training: Hint[CoreTriplesFactory] = None,
-    testing: Hint[CoreTriplesFactory] = None,
-    validation: Hint[CoreTriplesFactory] = None,
-    evaluation_entity_whitelist: Collection[str] | None = None,
-    evaluation_relation_whitelist: Collection[str] | None = None,
-    # 2. Model
-    model: None | str | Model | type[Model] = None,
-    model_kwargs: Mapping[str, Any] | None = None,
-    interaction: None | str | Interaction | type[Interaction] = None,
-    interaction_kwargs: Mapping[str, Any] | None = None,
-    dimensions: None | int | Mapping[str, int] = None,
-    # 3. Loss
-    loss: HintType[Loss] = None,
-    loss_kwargs: Mapping[str, Any] | None = None,
-    # 4. Regularizer
-    regularizer: HintType[Regularizer] = None,
-    regularizer_kwargs: Mapping[str, Any] | None = None,
-    # 5. Optimizer
-    optimizer: HintType[Optimizer] = None,
-    optimizer_kwargs: Mapping[str, Any] | None = None,
-    clear_optimizer: bool = True,
-    # 5.1 Learning Rate Scheduler
-    lr_scheduler: HintType[LRScheduler] = None,
-    lr_scheduler_kwargs: Mapping[str, Any] | None = None,
-    # 6. Training Loop
-    training_loop: HintType[TrainingLoop] = None,
-    training_loop_kwargs: Mapping[str, Any] | None = None,
-    negative_sampler: HintType[NegativeSampler] = None,
-    negative_sampler_kwargs: Mapping[str, Any] | None = None,
-    # 7. Training (ronaldo style)
-    epochs: int | None = None,
-    training_kwargs: Mapping[str, Any] | None = None,
-    stopper: HintType[Stopper] = None,
-    stopper_kwargs: Mapping[str, Any] | None = None,
-    # 8. Evaluation
-    evaluator: HintType[Evaluator] = None,
-    evaluator_kwargs: Mapping[str, Any] | None = None,
-    evaluation_kwargs: Mapping[str, Any] | None = None,
-    # 9. Tracking
-    result_tracker: OneOrManyHintOrType[ResultTracker] = None,
-    result_tracker_kwargs: OneOrManyOptionalKwargs = None,
-    # Misc
-    metadata: dict[str, Any] | None = None,
-    device: Hint[torch.device] = None,
-    random_seed: int | None = None,
-    use_testing_data: bool = True,
-    evaluation_fallback: bool = False,
-    filter_validation_when_testing: bool = True,
-    use_tqdm: bool | None = None,
+        # 在 * 之后定义的参数都必须作为关键字参数传递
+        *,
+        # 1. Dataset
+        # 类型提示 (None | str | Dataset | type[Dataset]):
+        #
+        # None: 这个参数可以是 None，表示未指定数据集。
+        # str: 这个参数可以是一个字符串，通常用来传递数据集的名称（例如，预定义的标准数据集名称）。
+        # Dataset: 这个参数可以是一个 Dataset 类的实例，表示已经加载或自定义的数据集对象。
+        # type[Dataset]: 这个参数可以是 Dataset 类本身，而不是其实例。这意味着你可以传递数据集类，然后函数内部可能会根据需要实例化这个类。
+        dataset: None | str | Dataset | type[Dataset] = None,
+        # Mapping[str, Any]: 表示这个参数是一个映射类型，通常是一个字典（dict）
+        dataset_kwargs: Mapping[str, Any] | None = None,
+        training: Hint[CoreTriplesFactory] = None,
+        testing: Hint[CoreTriplesFactory] = None,
+        validation: Hint[CoreTriplesFactory] = None,
+        # 可以是list,set,tuple
+        # 假设你在使用 FB15k237 数据集训练一个模型，并且只对 "Belgium"（比利时）、"France"（法国）和 "Germany"（德国）的模型表现感兴趣，你可以使用如下代码：
+        # entity_whitelist = ["Belgium", "France", "Germany"]
+        # result = pipeline(
+        #     dataset="FB15k237",
+        #     model="TransE",
+        #     evaluation_entity_whitelist=entity_whitelist
+        # )
+        evaluation_entity_whitelist: Collection[str] | None = None,
+        evaluation_relation_whitelist: Collection[str] | None = None,
+        # 2. Model
+        model: None | str | Model | type[Model] = None,
+        model_kwargs: Mapping[str, Any] | None = None,
+        interaction: None | str | Interaction | type[Interaction] = None,
+        interaction_kwargs: Mapping[str, Any] | None = None,
+        dimensions: None | int | Mapping[str, int] = None,
+        # 3. Loss
+        loss: HintType[Loss] = None,
+        loss_kwargs: Mapping[str, Any] | None = None,
+        # 4. Regularizer
+        regularizer: HintType[Regularizer] = None,
+        regularizer_kwargs: Mapping[str, Any] | None = None,
+        # 5. Optimizer
+        optimizer: HintType[Optimizer] = None,
+        optimizer_kwargs: Mapping[str, Any] | None = None,
+        clear_optimizer: bool = True,
+        # 5.1 Learning Rate Scheduler
+        lr_scheduler: HintType[LRScheduler] = None,
+        lr_scheduler_kwargs: Mapping[str, Any] | None = None,
+        # 6. Training Loop
+        training_loop: HintType[TrainingLoop] = None,
+        training_loop_kwargs: Mapping[str, Any] | None = None,
+        negative_sampler: HintType[NegativeSampler] = None,
+        negative_sampler_kwargs: Mapping[str, Any] | None = None,
+        # 7. Training (ronaldo style)
+        epochs: int | None = None,
+        training_kwargs: Mapping[str, Any] | None = None,
+        stopper: HintType[Stopper] = None,
+        stopper_kwargs: Mapping[str, Any] | None = None,
+        # 8. Evaluation
+        evaluator: HintType[Evaluator] = None,
+        evaluator_kwargs: Mapping[str, Any] | None = None,
+        evaluation_kwargs: Mapping[str, Any] | None = None,
+        # 9. Tracking
+        result_tracker: OneOrManyHintOrType[ResultTracker] = None,
+        result_tracker_kwargs: OneOrManyOptionalKwargs = None,
+        # Misc
+        metadata: dict[str, Any] | None = None,
+        device: Hint[torch.device] = None,
+        random_seed: int | None = None,
+        use_testing_data: bool = True,
+        evaluation_fallback: bool = False,
+        filter_validation_when_testing: bool = True,
+        use_tqdm: bool | None = None,
 ) -> PipelineResult:
     """Train and evaluate a model.
 
@@ -1488,7 +1519,7 @@ def pipeline(  # noqa: C901
 
     # Start tracking
     _result_tracker.start_run(run_name=title)
-
+    # 处理dataset，生成训练集，测试集，验证集
     training, testing, validation = _handle_dataset(
         _result_tracker=_result_tracker,
         dataset=dataset,

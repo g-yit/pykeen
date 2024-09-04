@@ -44,6 +44,7 @@ class RelationInverter(ABC):
 
 
 class DefaultRelationInverter(RelationInverter):
+    '''普通的关系映射到偶数 ID，并将相应的逆关系映射到下一个奇数 ID'''
     """Maps normal relations to even IDs, and the corresponding inverse to the next odd ID."""
 
     # docstr-coverage: inherited

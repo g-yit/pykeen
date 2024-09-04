@@ -63,6 +63,27 @@ def create_entity_mapping(triples: LabeledTriples) -> EntityMapping:
     :returns:
         A mapping of entity labels to indices
     """
+    '''
+    输入：triples = np.array([
+    ["London", "is_capital_of", "United_Kingdom"],
+    ["Paris", "is_capital_of", "France"],
+    ["Berlin", "is_capital_of", "Germany"],
+    ["London", "located_in", "Europe"],
+    ["Paris", "located_in", "Europe"],
+    ])
+    输出：
+        {
+        "Berlin": 0,
+        "Europe": 1,
+        "France": 2,
+        "Germany": 3,
+        "London": 4,
+        "Paris": 5,
+        "United_Kingdom": 6
+        }
+
+
+    '''
     # Split triples
     heads, tails = triples[:, 0], triples[:, 2]
     # Sorting ensures consistent results when the triples are permuted
@@ -92,6 +113,35 @@ def _map_triples_elements_to_ids(
     entity_to_id: EntityMapping,
     relation_to_id: RelationMapping,
 ) -> MappedTriples:
+    '''
+    输入：triples = np.array([
+    ["London", "is_capital_of", "United_Kingdom"],
+    ["Paris", "is_capital_of", "France"],
+    ["Berlin", "is_capital_of", "Germany"],
+    ["New_York", "located_in", "USA"]  # New_York 不在映射中
+])
+
+entity_to_id = {
+    "London": 0,
+    "Paris": 1,
+    "Berlin": 2,
+    "United_Kingdom": 3,
+    "France": 4,
+    "Germany": 5,
+}
+
+relation_to_id = {
+    "is_capital_of": 0,
+    "located_in": 1
+}
+输入：tensor([
+    [0, 0, 3],  # "London", "is_capital_of", "United_Kingdom"
+    [1, 0, 4],  # "Paris", "is_capital_of", "France"
+    [2, 0, 5],  # "Berlin", "is_capital_of", "Germany"
+])
+
+
+    '''
     """Map entities and relations to pre-defined ids."""
     if triples.size == 0:
         logger.warning("Provided empty triples to map.")
@@ -141,6 +191,12 @@ def _get_triple_mask(
     invert: bool = False,
     max_id: Optional[int] = None,
 ) -> torch.BoolTensor:
+    '''目的是生成一个布尔掩码（torch.BoolTensor），该掩码指示了在给定的 triples 数据中，哪些条目符合指定的 ids 集合。'''
+    '''
+    布尔张量指示了在 triples 中哪些条目在指定列中完全符合 ids 集合
+    输入：ids = {1, 2}  triples = torch.tensor([[1, 2, 3], [4, 5, 6], [1, 5, 2], [2, 2, 2]]) columns = [0, 2]
+    输出：tensor([False, False,  True,  True])
+    '''
     # normalize input
     triples = triples[:, columns]
     if isinstance(columns, int):
@@ -160,21 +216,34 @@ def _ensure_ids(
     labels_or_ids: Union[Collection[int], Collection[str]],
     label_to_id: Mapping[str, int],
 ) -> Collection[int]:
+    '''
+    目的是将标签转换为 ID。如果输入的是 ID，则直接返回；如果输入的是标签，则通过映射关系将标签转换为对应的 ID
+    '''
+    '''
+        输入：# 示例数据
+        labels_or_ids = ['cat', 'dog', 4, 'fish']
+        label_to_id = {'cat': 1, 'dog': 2, 'fish': 3}
+        输入：result = [1, 2, 4, 3]
+    '''
     """Convert labels to IDs."""
     return [label_to_id[l_or_i] if isinstance(l_or_i, str) else l_or_i for l_or_i in labels_or_ids]
 
 
 @dataclasses.dataclass
 class Labeling:
+    '''
+    @dataclasses.dataclass 是 Python 3.7 引入的一个装饰器，用于简化数据类的定义。数据类是一种简化了类定义过程的方式，专门用于存储数据。使用 @dataclasses.dataclass 可以自动生成常用的特殊方法，比如 __init__、__repr__、__eq__ 等。
+    '''
     """A mapping between labels and IDs."""
 
     #: The mapping from labels to IDs.
+    # 存储标签到 ID 的映射（字典类型，标签为键，ID 为值）。
     label_to_id: Mapping[str, int]
-
+    # id_to_label: 存储 ID 到标签的逆向映射，初始化时计算得到。使用 dataclasses.field(init=False) 表示该字段不会在初始化时设置，而是在 __post_init__ 方法中自动设置。
     #: The inverse mapping for label_to_id; initialized automatically
     id_to_label: Mapping[int, str] = dataclasses.field(init=False)
-
-    #: A vectorized version of entity_label_to_id; initialized automatically
+    # _vectorized_mapper 和 _vectorized_labeler: 使用 np.vectorize 创建的向量化函数，用于高效地处理标签和 ID 的转换。compare=False 表示这些字段不会参与比较操作（例如，__eq__）。
+    #: A vectorized version of entity_label_to_id; initialized automatically Callable[..., np.ndarray] 是 Python 类型提示中的一种类型注解，表示一个可调用对象（例如函数或方法），它接受任意数量的参数（...）并返回一个 NumPy 数组（np.ndarray）
     _vectorized_mapper: Callable[..., np.ndarray] = dataclasses.field(init=False, compare=False)
 
     #: A vectorized version of entity_id_to_label; initialized automatically
@@ -182,7 +251,12 @@ class Labeling:
 
     def __post_init__(self):
         """Precompute inverse mappings."""
+        # 将 k v相互调换位置
         self.id_to_label = invert_mapping(mapping=self.label_to_id)
+        # labels = ['cat', 'dog', 'bird']
+        # ids = self._vectorized_mapper(labels)
+        # # 假设 label_to_id 是 {'cat': 1, 'dog': 2, 'bird': 3}
+        # # ids 将是 np.array([1, 2, 3])
         self._vectorized_mapper = np.vectorize(self.label_to_id.get, otypes=[int])
         self._vectorized_labeler = np.vectorize(self.id_to_label.get, otypes=[str])
 
@@ -192,6 +266,9 @@ class Labeling:
         unknown_label: str = "unknown",
     ) -> np.ndarray:
         """Convert IDs to labels."""
+        '''ids = [1, 2, 4]  # 注意 ID 4 不在映射中
+labels = labeling.label(ids, unknown_label="unknown")
+print(labels)  # 输出: ['cat' 'dog' 'unknown']'''
         # Normalize input
         if isinstance(ids, torch.Tensor):
             ids = ids.cpu().numpy()
@@ -218,6 +295,28 @@ def restrict_triples(
     invert_entity_selection: bool = False,
     invert_relation_selection: bool = False,
 ) -> MappedTriples:
+    '''
+    于根据指定的实体 ID 和关系 ID 筛选三元组（triples）
+    '''
+    '''
+        输入：mapped_triples = np.array([
+        [1, 10, 100],
+        [2, 20, 200],
+        [3, 30, 300],
+        [4, 10, 400],
+        [1, 20, 500],
+        ]) 
+        entities = [1, 3]  # 选择头实体或尾实体为 1 或 3 的三元组
+        输出：
+            array([
+            [1, 10, 100],
+            [3, 30, 300],
+            [1, 20, 500]
+            ])
+
+        
+
+    '''
     """Select a subset of triples based on the given entity and relation ID selection.
 
     :param mapped_triples:
@@ -234,7 +333,7 @@ def restrict_triples(
         A tensor of triples containing the entities and relations of interest.
     """
     keep_mask = None
-
+    # 用于标记需要保留的三元组。
     # Filter for entities
     if entities is not None:
         keep_mask = _get_triple_mask(
@@ -556,6 +655,11 @@ class CoreTriplesFactory(KGInfo):
         randomize_cleanup: bool = False,
         method: Optional[str] = None,
     ) -> list["CoreTriplesFactory"]:
+        '''
+        ratios = [0.7, 0.2]  # 等价于 [0.7, 0.2, 0.1]
+        分成训练、验证、测试集
+        training_factory, validation_factory, testing_factory = factory.split(ratios=ratios)
+        '''
         """Split a triples factory into a training part and a variable number of (transductive) evaluation parts.
 
         .. warning::
@@ -683,6 +787,10 @@ class CoreTriplesFactory(KGInfo):
         invert_entity_selection: bool = False,
         invert_relation_selection: bool = False,
     ) -> "CoreTriplesFactory":
+        '''
+        生成一个包含特定实体和关系子集的新三元组工厂，同时保留原有的 ID 映射。
+        其中仅包含满足指定实体和关系子集的三元组，同时保留原始 ID 映射。该方法允许用户选择特定的实体和关系，或者反转选择，即选择不包含特定实体和关系的三元组。
+        '''
         """Make a new triples factory only keeping the given entities and relations, but keeping the ID mapping.
 
         :param entities:
@@ -874,6 +982,9 @@ class TriplesFactory(CoreTriplesFactory):
         filter_out_candidate_inverse_relations: bool = True,
         metadata: Optional[dict[str, Any]] = None,
     ) -> "TriplesFactory":
+        '''
+        用于从基于标签的三元组（即实体和关系都是字符串标签）创建一个 TriplesFactory 实例
+        '''
         """
         Create a new triples factory from label-based triples.
 
@@ -979,6 +1090,7 @@ class TriplesFactory(CoreTriplesFactory):
         :return:
             A new triples factory.
         """
+        # "/home/user/FK15"
         path = normalize_path(path)
 
         # TODO: Check if lazy evaluation would make sense

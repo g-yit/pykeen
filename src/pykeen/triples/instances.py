@@ -32,6 +32,32 @@ SLCWASampleType = tuple[MappedTriples, MappedTriples, Optional[torch.BoolTensor]
 
 
 class SLCWABatch(NamedTuple):
+    '''
+    # 假设我们有以下数据：
+    # batch_size = 2
+    # num_negatives_per_positive = 3
+
+    # 正样本，形状为 (batch_size, 3)
+    positives = torch.tensor([
+        [0, 1, 2],  # 三元组 (实体0, 关系1, 实体2)
+        [3, 1, 4],  # 三元组 (实体3, 关系1, 实体4)
+    ], dtype=torch.long)
+
+    # 负样本，形状为 (batch_size, num_negatives_per_positive, 3)
+    negatives = torch.tensor([
+        [[0, 1, 3], [0, 1, 4], [0, 1, 5]],  # 对应第一个正样本的负样本
+        [[3, 1, 5], [3, 1, 6], [3, 1, 7]],  # 对应第二个正样本的负样本
+    ], dtype=torch.long)
+
+    # 掩码，形状为 (batch_size, num_negatives_per_positive)
+    masks = torch.tensor([
+        [True, False, True],  # 第一个正样本的负样本掩码
+        [True, True, False],  # 第二个正样本的负样本掩码
+    ], dtype=torch.bool)
+
+    # 创建 SLCWABatch 实例
+    batch = SLCWABatch(positives=positives, negatives=negatives, masks=masks)
+    '''
     """A batch for sLCWA training."""
 
     #: the positive triples, shape: (batch_size, 3)
@@ -162,6 +188,9 @@ class SLCWAInstances(Instances[SLCWASampleType, SLCWABatch]):
 
 
 class BaseBatchedSLCWAInstances(data.IterableDataset[SLCWABatch]):
+    '''
+    每一个batch都由正样本，负样本，负样本的mask构成
+    '''
     """
     Pre-batched training instances for the sLCWA training loop.
 
@@ -373,8 +402,11 @@ class LCWAInstances(Instances[LCWASampleType, LCWABatchType]):
         """
         if target is None:
             target = 2
+        # 如果 target 没有被指定，默认值设置为 2，表示目标是 tail 列（即三元组中的第三列）。
         mapped_triples = mapped_triples.numpy()
+        # range(3) 生成 [0, 1, 2]，表示三元组的三列。通过 difference({target}) 将目标列排除，得到非目标列。假设 target=2，那么 other_columns 将为 [0, 1]。
         other_columns = sorted(set(range(3)).difference({target}))
+
         unique_pairs, pair_idx_to_triple_idx = np.unique(mapped_triples[:, other_columns], return_inverse=True, axis=0)
         num_pairs = unique_pairs.shape[0]
         tails = mapped_triples[:, target]
@@ -383,12 +415,38 @@ class LCWAInstances(Instances[LCWASampleType, LCWABatchType]):
             (np.ones(mapped_triples.shape[0], dtype=np.float32), (pair_idx_to_triple_idx, tails)),
             shape=(num_pairs, target_size),
         )
+        '''
+        # 假设我们有以下的 pair_idx_to_triple_idx 和 tails
+            pair_idx_to_triple_idx = np.array([0, 0, 1, 2, 3])
+            tails = np.array([1, 2, 2, 3, 3])
+            
+            [[0. 1. 1. 0.]
+             [0. 0. 1. 0.]
+             [0. 0. 0. 1.]
+             [0. 0. 0. 1.]]
+        '''
         # convert to csr for fast row slicing
         compressed = compressed.tocsr()
+        '''
+            [[0. 1. 1. 0.]
+             [0. 0. 1. 0.]
+             [0. 0. 0. 1.]
+             [0. 0. 0. 1.]]
+             CSR 格式使用以下三个属性来存储稀疏矩阵：
+                data: 存储所有非零元素的值。
+                indices: 存储与非零元素对应的列索引。
+                indptr: 指向每行数据起始位置的索引（行指针）。
+                
+                data: [1., 1., 1., 1., 1]
+                indices: [1, 2, 2, 3, 3]
+                indptr: [0, 2, 3, 4, 5]
+                indptr[0] = 0: 第 0 行的非零元素从 data[0] 开始，indices[0:2] 表示第 0 行有两个非零元素，列索引为 1 和 2。
+        '''
         return cls(pairs=unique_pairs, compressed=compressed)
 
     def __len__(self) -> int:  # noqa: D105
         return self.pairs.shape[0]
 
     def __getitem__(self, item: int) -> LCWABatchType:  # noqa: D105
+        # (array([0, 0]), array([1., 1., 0., 0.]))  # 对应的 (head, relation) 和 tails 向量
         return self.pairs[item], np.asarray(self.compressed[item, :].todense())[0, :]

@@ -1170,7 +1170,7 @@ def get_connected_components(pairs: Iterable[tuple[X, X]]) -> Collection[Collect
 
 PathType = Union[str, pathlib.Path, TextIO]
 
-
+# 传入“FK15”时会返回/home/user/FK15
 def normalize_path(
     path: PathType | None,
     *other: str | pathlib.Path,

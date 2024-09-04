@@ -582,6 +582,7 @@ class RemoteDataset(PathDataset):
 
     # docstr-coverage: inherited
     def _load(self) -> None:  # noqa: D102
+        '''下载并解压'''
         all_unpacked = all(path.is_file() for path in self._get_paths())
 
         if not all_unpacked:

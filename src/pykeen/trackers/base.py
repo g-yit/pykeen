@@ -21,6 +21,21 @@ __all__ = [
 
 class ResultTracker:
     """A class that tracks the results from a pipeline run."""
+    '''
+        ResultTracker 是一个基类，定义了用于追踪结果的基本接口。它提供了一些方法，用于在实验运行中记录参数和度量，并在实验结束时标记实验的状态（成功或失败）。
+    
+    start_run(self, run_name: Optional[str] = None) -> None:
+    
+    开始一个新的实验运行。可以选择性地为该运行命名。
+    log_params(self, params: Mapping[str, Any], prefix: Optional[str] = None) -> None:
+    
+    记录实验参数。params 是一个字典，包含参数的名称和值。prefix 是一个可选的前缀，添加到每个参数名称之前，便于分组或区分不同参数集。
+    log_metrics(self, metrics: Mapping[str, float], step: Optional[int] = None, prefix: Optional[str] = None) -> None:
+    
+    记录实验度量值。metrics 是一个字典，包含度量的名称和值。step 是可选的步骤号（例如训练的 epoch），用来标记这些度量值所对应的训练阶段。prefix 也是一个可选的前缀，添加到每个度量名称之前。
+    end_run(self, success: bool = True) -> None:
+    
+    结束一次实验运行。success 参数标记运行是否成功，尽管这个参数可能不会被每个实现具体使用。'''
 
     def start_run(self, run_name: Optional[str] = None) -> None:
         """Start a run with an optional name."""
@@ -52,6 +67,9 @@ class ResultTracker:
 
 
 class PythonResultTracker(ResultTracker):
+    '''
+    ，PythonResultTracker 用于跟踪和存储一个管道运行的配置和度量。实验结果存储在 tracker.configuration 和 tracker.metrics 中。实验结束后，你可以通过访问这些属性来查看和分析实验结果。
+    '''
     """A tracker which stores everything in Python dictionaries.
 
     Example Usage: get default configuration
