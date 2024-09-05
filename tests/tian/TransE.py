@@ -241,8 +241,8 @@ def main():
     print("Evaluating on validation set:")
     evaluate(model, valid_dataloader, device)
     # 保存模型
-    torch.save(model.state_dict(), 'transE_fb15k.pth')
-    print("模型已保存为 transE_fb15k.pth")
+    torch.save(model.state_dict(), 'conve_fb237k.th')
+    print("模型已保存为 conve_fb237k.th")
 
 if __name__ == '__main__':
     main()

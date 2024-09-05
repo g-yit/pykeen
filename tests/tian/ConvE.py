@@ -142,7 +142,7 @@ def evaluate(model, dataloader, device, k_values=[1, 3, 10]):
 
 def main():
     # 配置参数
-    data_path = './data'  # 数据集路径
+    data_path = './FB15K237'  # 数据集路径
     embedding_dim = 100
     margin = 1.0
     norm = 1
@@ -173,21 +173,30 @@ def main():
     print("Evaluating on validation set:")
     evaluate(model, valid_dataloader, device)
     # 保存模型
-    torch.save(model.state_dict(), 'transE_fb15k.pth')
-    print("模型已保存为 transE_fb15k.pth")
+    torch.save(model.state_dict(), 'conve_fb237k.th')
+    print("模型已保存为 conve.pth")
 
 
 if __name__ == '__main__':
-    main()
-    # 准备验证数据
-    valid_dataset = LcwaDataSet('./data', mode='valid')
-    print(valid_dataset.num_entities)
-    print(valid_dataset.num_relations)
-    # 假设 self.triples 已经是一个列表，形如 [(h1, r1, t1), (h2, r2, t2), ...]
+    valid_dataset = LcwaDataSet(data_path = './FB15K237', mode='test')
+    valid_dataloader = DataLoader(valid_dataset, batch_size=128, shuffle=False, num_workers=4)
+    model = ConvE(num_entities=valid_dataset.num_entities, num_relations=valid_dataset.num_relations)
+    device = torch.device('cuda')
+    model.load_state_dict(torch.load('conve_fb237k.th'))
+    model=model.to(device)
+    model.eval()
+    evaluate(model, valid_dataloader, device=torch.device('cuda'))
 
-    # 提取所有关系索引 r 的列表
-    relations = [triple[1] for triple in valid_dataset.triples]
-
-    # 计算关系索引的最大值
-    max_relation = max(relations)
-    print(max_relation)
+    # main()
+    # # 准备验证数据
+    # valid_dataset = LcwaDataSet('./FB15K237', mode='valid')
+    # print(valid_dataset.num_entities)
+    # print(valid_dataset.num_relations)
+    # # 假设 self.triples 已经是一个列表，形如 [(h1, r1, t1), (h2, r2, t2), ...]
+    #
+    # # 提取所有关系索引 r 的列表
+    # relations = [triple[1] for triple in valid_dataset.triples]
+    #
+    # # 计算关系索引的最大值
+    # max_relation = max(relations)
+    # print(max_relation)

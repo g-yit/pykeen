@@ -15,7 +15,7 @@ class LcwaDataSet(Dataset):
         :param mode: 'train', 'valid', 'test'
         """
         self.mode = mode
-        self.data = self.load_data(os.path.join(data_path, f"freebase_mtr100_mte100-{mode}.txt"))
+        self.data = self.load_data(os.path.join(data_path, f"{mode}.txt"))
         self.entities, self.relations = self.get_entities_relations(data_path)
         self.entity2id = {entity: idx for idx, entity in enumerate(self.entities)}
         self.relation2id = {relation: idx for idx, relation in enumerate(self.relations)}
@@ -53,7 +53,7 @@ class LcwaDataSet(Dataset):
         entities = set()
         relations = set()
         for mode in ['train', 'valid', 'test']:
-            file_path = os.path.join(data_path, f"freebase_mtr100_mte100-{mode}.txt")
+            file_path = os.path.join(data_path, f"{mode}.txt")
             with open(file_path, 'r') as f:
                 for line in f:
                     h, r, t = line.strip().split('\t')
