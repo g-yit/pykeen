@@ -28,7 +28,7 @@ model = TransE(
 
 # 创建优化器
 optimizer = SGD(params=model.parameters(), lr=0.01)
-eval_callback = ZTrainingCallback(evaluation_triples=dataset.testing.mapped_triples,full_test_evaluation_triples=dataset.testing.mapped_triples,additional_filter_triples=dataset.training.mapped_triples)
+eval_callback = ZTrainingCallback(evaluation_triples=dataset.validation.mapped_triples,full_test_evaluation_triples=dataset.testing.mapped_triples,additional_filter_triples=dataset.training.mapped_triples)
 # 创建训练循环
 training_loop = SLCWATrainingLoop(
     triples_factory=dataset.training,
@@ -39,6 +39,7 @@ training_loop = SLCWATrainingLoop(
 
 # 进行训练
 training_loop.train(
+    use_tqdm_batch=False,
     callbacks=[eval_callback],
     triples_factory=dataset.training,
     num_epochs=100,  # 训练轮数

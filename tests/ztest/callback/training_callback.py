@@ -54,12 +54,13 @@ class ZTrainingCallback(TrainingCallback):
         self.kwargs = kwargs
         self.batch_size = self.kwargs.pop("batch_size", None)
         self.full_test_evaluation_triples = full_test_evaluation_triples
-
     # docstr-coverage: inherited
-    def post_epoch(self, epoch: int, epoch_loss: float, additional_filter_triples, **kwargs: Any) -> None:  # noqa: D102
+    def post_epoch(self, epoch: int, epoch_loss: float, **kwargs: Any) -> None:  # noqa: D102
         if epoch >= 1 and epoch % self.frequency == 0:
+            print("")
+            print("validation ........")
             result = self.evaluator.evaluate(
-                additional_filter_triples=additional_filter_triples,
+                additional_filter_triples=self.additional_filter_triples,
                 model=self.model,
                 use_tqdm=False,
                 mapped_triples=self.evaluation_triples,
@@ -72,15 +73,17 @@ class ZTrainingCallback(TrainingCallback):
             hits1 = result.to_dict()["both"]["optimistic"]["hits_at_1"]
             hits5 = result.to_dict()["both"]["optimistic"]["hits_at_5"]
             hits10 = result.to_dict()["both"]["optimistic"]["hits_at_10"]
-            print("validation ........")
+
             print(f"epoch: {epoch}  loss:{epoch_loss}")
             print(f"mmr:{mmr}, mr:{mr}, hits1:{hits1}, hits5:{hits5}, hits10:{hits10}")
             print("")
             self.result_tracker.log_metrics(metrics=result.to_flat_dict(), step=epoch, prefix=self.prefix)
         if epoch >= 1 and epoch % self.full_test_frequency == 0:
+            print("")
+            print("full_test ........")
             result = self.evaluator.evaluate(
                 use_tqdm = False,
-                additional_filter_triples=additional_filter_triples,
+                additional_filter_triples=self.additional_filter_triples,
                 model=self.model,
                 mapped_triples=self.full_test_evaluation_triples,
                 device=self.training_loop.device,
@@ -92,7 +95,6 @@ class ZTrainingCallback(TrainingCallback):
             hits1 = result.to_dict()["both"]["optimistic"]["hits_at_1"]
             hits5 = result.to_dict()["both"]["optimistic"]["hits_at_5"]
             hits10 = result.to_dict()["both"]["optimistic"]["hits_at_10"]
-            print("full_test ........")
             print(f"epoch: {epoch}  loss:{epoch_loss}")
             print(f"mmr:{mmr}, mr:{mr}, hits1:{hits1}, hits5:{hits5}, hits10:{hits10}")
             print("")
